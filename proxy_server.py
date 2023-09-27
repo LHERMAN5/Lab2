@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 import socket, sys
+import time
+from threading import Thread
 
-#create a tcp socket
+#define address & buffer size
+HOST = ""
+PORT = 8001
+BUFFER_SIZE = 1024
+
 def create_tcp_socket():
     print('Creating socket')
     try:
@@ -34,12 +40,12 @@ def send_data(serversocket, payload):
         sys.exit()
     print("Payload sent successfully")
 
-def get(host, port):
+def send_request(host, port, request):
     try:
         #define address info, payload, and buffer size
         host = 'www.google.com'
         port = 80
-        payload = f'GET / HTTP/1.0\r\nHost: {host}\r\n\r\n'
+
         buffer_size = 4096
 
         #make the socket, get the ip, and connect
@@ -51,7 +57,7 @@ def get(host, port):
         print (f'Socket Connected to {host} on ip {remote_ip}')
         
         #send the data and shutdown
-        send_data(s, payload)
+        send_data(s, request)
         s.shutdown(socket.SHUT_WR)
 
         #continue accepting data until no more left
@@ -68,9 +74,55 @@ def get(host, port):
         #always close at the end!
         s.close()
 
+def handle_connection(conn, addr):
+    print("Connected by", addr)
+
+    request = b''
+    while True:
+        data = conn.recv(BUFFER_SIZE)
+        if not data:
+            break
+        print(data)
+        request += data
+    response = send_request("www.google.com", 80, request)
+    conn.sendall(response)
+
+def start_threaded_server():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    
+        #QUESTION 3
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
+        #bind socket to address
+        s.bind((HOST, PORT))
+        #set to listening mode
+        s.listen(2)
+
+        while True:
+            conn, addr = s.accept()
+            thread = Thread(target=handle_connection, args=(conn, addr))
+            thread.run()
+
+
+def start_server():
+     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    
+        #QUESTION 3
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
+        #bind socket to address
+        s.bind((HOST, PORT))
+        #set to listening mode
+        s.listen(2)
+        
+        conn, addr = s.accept()
+        
+        handle_connection(conn, addr)
+            
+
 
 def main():
-    get("www.google.com", 80)
+  start_threaded_server()
+
 if __name__ == "__main__":
     main()
-

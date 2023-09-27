@@ -1,13 +1,26 @@
 #!/usr/bin/env python3
 import socket
 import time
+from threading import Thread
 
 #define address & buffer size
 HOST = ""
 PORT = 8001
 BUFFER_SIZE = 1024
 
-def main():
+def handle_connection(conn, addr):
+    print("Connected by", addr)
+
+    while True:
+        data = conn.recv(BUFFER_SIZE)
+        if not data:
+            break
+        print(data)
+        conn.sendall(data)
+
+
+
+def start_threaded_server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     
         #QUESTION 3
@@ -17,17 +30,32 @@ def main():
         s.bind((HOST, PORT))
         #set to listening mode
         s.listen(2)
-        
-        #continuously listen for connections
+
         while True:
             conn, addr = s.accept()
-            print("Connected by", addr)
+            thread = Thread(target=handle_connection, args=(conn, addr))
+            thread.run()
+
+
+def start_server():
+     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    
+        #QUESTION 3
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
+        #bind socket to address
+        s.bind((HOST, PORT))
+        #set to listening mode
+        s.listen(2)
+        
+        conn, addr = s.accept()
+        
+        handle_connection(conn, addr)
             
-            #recieve data, wait a bit, then send it back
-            full_data = conn.recv(BUFFER_SIZE)
-            time.sleep(0.5)
-            conn.sendall(full_data)
-            conn.close()
+
+
+def main():
+  start_threaded_server()
 
 if __name__ == "__main__":
     main()
