@@ -9,15 +9,15 @@ PORT = 8080
 BUFFER_SIZE = 4096
 
 def send_request(host, port, request):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect((host, port))
-        client_socket.send(request)
-        client_socket.shutdown(socket.SHUT_WR)
-        data = client_socket.recv(BUFFER_SIZE)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as c:
+        c.connect((host, port))
+        c.send(request)
+        c.shutdown(socket.SHUT_WR)
+        data = c.recv(BUFFER_SIZE)
         result = b'' + data
 
         while len(data) > 0:
-            data = client_socket.recv(BUFFER_SIZE)
+            data = c.recv(BUFFER_SIZE)
             result += data
         return result
 
