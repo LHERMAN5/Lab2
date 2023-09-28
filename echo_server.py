@@ -5,7 +5,7 @@ from threading import Thread
 
 #define address & buffer size
 HOST = ""
-PORT = 8001
+PORT = 8080
 BUFFER_SIZE = 1024
 
 def handle_connection(conn, addr):
